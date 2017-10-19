@@ -1,10 +1,12 @@
 package main
 
-import "github.com/boltdb/bolt"
-import "log"
-import "encoding/hex"
-import "os"
-import "fmt"
+import (
+	"encoding/hex"
+	"fmt"
+	"github.com/boltdb/bolt"
+	"log"
+	"os"
+)
 
 const dbFile = "blockchain.db"
 const blocksBucket = "blocks"
