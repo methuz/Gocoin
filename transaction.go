@@ -129,7 +129,6 @@ func (tx Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transact
 		signature := append(r.Bytes(), s.Bytes()...)
 
 		tx.Vin[inID].Signature = signature
-
 	}
 }
 

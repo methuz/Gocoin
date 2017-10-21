@@ -1,11 +1,12 @@
 package main
 
 import (
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"log"
 	"os"
-	"strconv"
+	"time"
 )
 
 type CLI struct {
@@ -121,15 +122,24 @@ func (cli *CLI) createWallet() {
 }
 
 func (cli *CLI) printChain() {
-	bci := cli.bc.Iterator()
+	bc := NewBlockchain("")
+	defer bc.db.Close()
+
+	bci := bc.Iterator()
 
 	for {
 		block := bci.Next()
+		blockTime := time.Unix(block.Timestamp, 0)
 
+		fmt.Printf("=============== Block %x ================\n", block.Hash)
 		fmt.Printf("Prev. hash: %x\n", block.PrevBlockHash)
-		fmt.Printf("Hash: %x\n", block.Hash)
-		pow := NewProofOfWork(block)
-		fmt.Printf("PoW: %s\n", strconv.FormatBool(pow.Validate()))
+		fmt.Printf("Time: %s\n", blockTime.String())
+		fmt.Printf("Transactions:\n")
+
+		for txi, tx := range block.Transactions {
+			txid := hex.EncodeToString(tx.ID)
+			fmt.Printf("%d %s\n len %d:\n", txi, txid, len(tx.ID))
+		}
 
 		if len(block.PrevBlockHash) == 0 {
 			break
