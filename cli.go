@@ -1,12 +1,10 @@
 package main
 
 import (
-	"encoding/hex"
 	"flag"
 	"fmt"
 	"log"
 	"os"
-	"time"
 )
 
 type CLI struct {
@@ -106,72 +104,4 @@ func (cli *CLI) Run() {
 	if printChainCmd.Parsed() {
 		cli.printChain()
 	}
-}
-
-func (cli *CLI) createBlockchain(address string) {
-	bc := CreateBlockchain(address)
-	bc.db.Close()
-	fmt.Println("Done!")
-}
-
-func (cli *CLI) createWallet() {
-	wallets, _ := NewWallets()
-	address := wallets.CreateWallet()
-	wallets.SaveToFile()
-	fmt.Printf("Address : %s\n", address)
-}
-
-func (cli *CLI) printChain() {
-	bc := NewBlockchain("")
-	defer bc.db.Close()
-
-	bci := bc.Iterator()
-
-	for {
-		block := bci.Next()
-		blockTime := time.Unix(block.Timestamp, 0)
-
-		fmt.Printf("=============== Block %x ================\n", block.Hash)
-		fmt.Printf("Prev. hash: %x\n", block.PrevBlockHash)
-		fmt.Printf("Time: %s\n", blockTime.String())
-		fmt.Printf("Transactions:\n")
-
-		for txi, tx := range block.Transactions {
-			txid := hex.EncodeToString(tx.ID)
-			fmt.Printf("%d %s\n len %d:\n", txi, txid, len(tx.ID))
-		}
-
-		if len(block.PrevBlockHash) == 0 {
-			break
-		}
-	}
-}
-
-func (cli *CLI) send(from, to string, amount int) {
-	bc := NewBlockchain(from)
-	defer bc.db.Close()
-
-	tx := NewUTXOTransaction(from, to, amount, bc)
-	bc.MineBlock([]*Transaction{tx})
-	fmt.Println("Success!")
-}
-
-func (cli *CLI) getBalance(address string) {
-	if !ValidateAddress(address) {
-		log.Panic("ERROR: Address is not valid")
-	}
-	bc := NewBlockchain(address)
-	defer bc.db.Close()
-
-	balance := 0
-
-	pubKeyHash := Base58Decode([]byte(address))
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
-	UTXOs := bc.FindUTXO(pubKeyHash)
-
-	for _, out := range UTXOs {
-		balance += out.Value
-	}
-
-	fmt.Printf("Balance of '%s' : %d\n", address, balance)
 }
