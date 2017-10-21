@@ -114,10 +114,10 @@ func (cli *CLI) createBlockchain(address string) {
 }
 
 func (cli *CLI) createWallet() {
-	w := NewWallet()
-	fmt.Printf("Private key: %x\n", w.PrivateKey)
-	fmt.Printf("Public key: %x\n", w.PublicKey)
-	fmt.Printf("Address : %s\n", w.GetAddress())
+	wallets, _ := NewWallets()
+	address := wallets.CreateWallet()
+	wallets.SaveToFile()
+	fmt.Printf("Address : %s\n", address)
 }
 
 func (cli *CLI) printChain() {
