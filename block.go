@@ -1,9 +1,11 @@
 package main
 
-import "time"
-import "bytes"
-import "encoding/gob"
-import "log"
+import (
+	"bytes"
+	"encoding/gob"
+	"log"
+	"time"
+)
 
 type Block struct {
 	Timestamp     int64
@@ -49,4 +51,16 @@ func DeserializeBlock(d []byte) *Block {
 	}
 
 	return &block
+}
+
+func (b *Block) HashTransactions() []byte {
+	var transactions [][]byte
+
+	for _, tx := range b.Transactions {
+		transactions = append(transactions, tx.Serialize())
+	}
+
+	mTree := NewMerkleTree(transactions)
+
+	return mTree.RootNode.Data
 }
