@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-func (cli *CLI) printChain() {
-	bc := NewBlockchain("")
+func (cli *CLI) printChain(nodeID string) {
+	bc := NewBlockchain(nodeID)
 	defer bc.db.Close()
 
 	bci := bc.Iterator()
@@ -18,6 +18,7 @@ func (cli *CLI) printChain() {
 
 		fmt.Printf("=============== Block %x ================\n", block.Hash)
 		fmt.Printf("Prev. hash: %x\n", block.PrevBlockHash)
+		fmt.Printf("Height: %x\n", block.Height)
 		fmt.Printf("Time: %s\n", blockTime.String())
 		fmt.Printf("Transactions:\n")
 
