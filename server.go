@@ -31,6 +31,10 @@ type getblocks struct {
 	AddrFrom string
 }
 
+type addr struct {
+	AddrList []string
+}
+
 type inv struct {
 	AddrFrom string
 	Type     string
@@ -156,10 +160,20 @@ func handleConnection(conn net.Conn, bc *Blockchain) {
 	defer conn.Close()
 
 	switch command {
+	case "addr":
+		handleAddr(request)
+	case "block":
+		handleBlock(request, bc)
 	case "version":
 		handleVersion(request, bc)
+	case "inv":
+		handleInv(request, bc)
 	case "getblocks":
 		handleGetBlocks(request, bc)
+	case "getdata":
+		handleGetData(request, bc)
+	case "tx":
+		handleTx(request, bc)
 
 	default:
 		fmt.Println("Unknown command!")
@@ -302,7 +316,7 @@ func handleInv(request []byte, bc *Blockchain) {
 		log.Panic(err)
 	}
 
-	fmt.Printf("Received inventory with %d %d\n", len(payload.Items), payload.Type)
+	fmt.Printf("Received inventory with %d %s\n", len(payload.Items), payload.Type)
 
 	if payload.Type == "block" {
 		blocksInTransit := payload.Items
@@ -423,4 +437,27 @@ func nodeIsKnown(addr string) bool {
 	}
 
 	return false
+}
+
+func handleAddr(request []byte) {
+	var buff bytes.Buffer
+	var payload addr
+
+	buff.Write(request[commandLength:])
+	dec := gob.NewDecoder(&buff)
+	err := dec.Decode(&payload)
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	knownNodes = append(knownNodes, payload.AddrList...)
+	fmt.Printf("There are %d known nodes now!\n", len(knownNodes))
+	requestBlocks()
+}
+
+func requestBlocks() {
+	for _, node := range knownNodes {
+		sendGetBlocks(node)
+	}
 }
