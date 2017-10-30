@@ -180,6 +180,8 @@ func (bc *Blockchain) FindUnspentTransactions(pubKeyHash []byte) []Transaction {
 func (bc *Blockchain) FindUTXO() map[string]TXOutputs {
 	UTXOs := make(map[string]TXOutputs)
 	spentTXOs := make(map[string][]int)
+
+	fmt.Printf("%x tip", bc.tip)
 	bci := bc.Iterator()
 
 	for {
@@ -287,15 +289,17 @@ func (bc *Blockchain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey)
 }
 
 func (bc *Blockchain) VerifyTransaction(tx *Transaction) bool {
+	if tx.IsCoinbase() {
+		return true
+	}
+
 	prevTXs := make(map[string]Transaction)
 
 	for _, vin := range tx.Vin {
 		prevTX, err := bc.FindTransaction(vin.Txid)
-
 		if err != nil {
 			log.Panic(err)
 		}
-
 		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
 	}
 
@@ -393,4 +397,10 @@ func (bc *Blockchain) GetBlock(blockHash []byte) (Block, error) {
 		log.Panic(err)
 	}
 	return block, nil
+}
+
+func (bc *Blockchain) Iterator() *BlockchainIterator {
+	bci := &BlockchainIterator{bc.tip, bc.db}
+
+	return bci
 }
