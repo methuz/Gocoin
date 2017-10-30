@@ -89,11 +89,11 @@ func sendVersion(addr string, bc *Blockchain) {
 	sendData(addr, request)
 }
 
-func sendGetData(addr, kind string, id []byte) {
-	payload := gobEncode(getdata{addr, kind, id})
+func sendGetData(address, kind string, id []byte) {
+	payload := gobEncode(getdata{nodeAddress, kind, id})
 	request := append(commandToBytes("getdata"), payload...)
 
-	sendData(addr, request)
+	sendData(address, request)
 }
 
 func sendData(addr string, data []byte) {
@@ -289,12 +289,12 @@ func handleGetBlocks(request []byte, bc *Blockchain) {
 	sendInv(payload.AddrFrom, "block", blocks)
 }
 
-func sendTx(addr string, tnx *Transaction) {
+func sendTx(address string, tnx *Transaction) {
 	data := tx{nodeAddress, tnx.Serialize()}
 	payload := gobEncode(data)
 	request := append(commandToBytes("tx"), payload...)
 
-	sendData(addr, request)
+	sendData(address, request)
 }
 func sendInv(address, kind string, items [][]byte) {
 	inventory := inv{nodeAddress, kind, items}
@@ -319,6 +319,7 @@ func handleInv(request []byte, bc *Blockchain) {
 	fmt.Printf("Received inventory with %d %s\n", len(payload.Items), payload.Type)
 
 	if payload.Type == "block" {
+		fmt.Printf("payload %s\n", payload.Type)
 		blocksInTransit := payload.Items
 
 		blockHash := payload.Items[0]
@@ -336,6 +337,7 @@ func handleInv(request []byte, bc *Blockchain) {
 	}
 
 	if payload.Type == "tx" {
+		fmt.Printf("payload %s\n", payload.Type)
 		txID := payload.Items[0]
 
 		if mempool[hex.EncodeToString(txID)].ID == nil {
@@ -348,6 +350,7 @@ func handleBlock(request []byte, bc *Blockchain) {
 	var buff bytes.Buffer
 	var payload block
 
+	fmt.Println("Received a new block!")
 	buff.Write(request[commandLength:])
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
@@ -358,8 +361,6 @@ func handleBlock(request []byte, bc *Blockchain) {
 
 	blockData := payload.Block
 	block := DeserializeBlock(blockData)
-
-	fmt.Println("Received a new block!")
 
 	// TODO Validate
 	bc.AddBlock(block)

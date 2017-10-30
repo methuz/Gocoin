@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/hex"
-	"fmt"
 	"github.com/boltdb/bolt"
 	"log"
 )
@@ -56,7 +55,6 @@ func (u UTXOSet) Reindex() {
 		return nil
 	})
 	if err != nil {
-		fmt.Println("here")
 		log.Panic(err)
 	}
 }
